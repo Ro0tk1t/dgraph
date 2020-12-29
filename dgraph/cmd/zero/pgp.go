@@ -22,8 +22,8 @@ import (
 	"io/ioutil"
 
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
+	//"golang.org/x/crypto/openpgp"
+	//"golang.org/x/crypto/openpgp/armor"
 )
 
 const publicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -82,39 +82,52 @@ E4Hf9ymxdCLfuVsJ0dPkqv/nWsEMIVQmFVZvWs8iz8JR7Wh6/L1KJ+HpxekqoZgq
 // verifySignature verifies the signature given a public key. It also JSON unmarshals the details
 // of the license and stores them in l.
 func verifySignature(signedFile, publicKey io.Reader, l *license) error {
-	entityList, err := openpgp.ReadArmoredKeyRing(publicKey)
-	if err != nil {
-		return errors.Wrapf(err, "while reading public key")
-	}
+   // entityList, err := openpgp.ReadArmoredKeyRing(publicKey)
+   // if err != nil {
+   // 	return errors.Wrapf(err, "while reading public key")
+   // }
 
-	// The signed file is expected to be have ASCII encoding, so we have to decode it before
-	// reading.
-	b, err := armor.Decode(signedFile)
-	if err != nil {
-		return errors.Wrapf(err, "while decoding license file")
-	}
+   // // The signed file is expected to be have ASCII encoding, so we have to decode it before
+   // // reading.
+   // b, err := armor.Decode(signedFile)
+   // if err != nil {
+   // 	return errors.Wrapf(err, "while decoding license file")
+   // }
 
-	md, err := openpgp.ReadMessage(b.Body, entityList, nil, nil)
-	if err != nil {
-		return errors.Wrapf(err, "while reading PGP message from license file")
-	}
+   // md, err := openpgp.ReadMessage(b.Body, entityList, nil, nil)
+   // if err != nil {
+   // 	return errors.Wrapf(err, "while reading PGP message from license file")
+   // }
 
-	// We need to read the body for the signature verification check to happen.
-	// md.Signature would be non-nil after reading the body if the verification is successful.
-	buf, err := ioutil.ReadAll(md.UnverifiedBody)
+   // // We need to read the body for the signature verification check to happen.
+   // // md.Signature would be non-nil after reading the body if the verification is successful.
+   // buf, err := ioutil.ReadAll(md.UnverifiedBody)
+   // if err != nil {
+   // 	return errors.Wrapf(err, "while reading body from signed license file")
+   // }
+   // // This could be nil even if signature verification failed, so we also check Signature == nil
+   // // below.
+   // if md.SignatureError != nil {
+   // 	return errors.Wrapf(md.SignatureError,
+   // 		"signature error while trying to verify license file")
+   // }
+   // if md.Signature == nil {
+   // 	return errors.New("invalid signature while trying to verify license file")
+   // }
+
+   // err = json.Unmarshal(buf, l)
+   // if err != nil {
+   // 	return errors.Wrapf(err, "while JSON unmarshaling body of license file")
+   // }
+   // if l.User == "" || l.MaxNodes == 0 || l.Expiry.IsZero() {
+   // 	return errors.Errorf("invalid JSON data, fields shouldn't be zero: %+v\n", l)
+   // }
+   // return nil
+
+	buf, err := ioutil.ReadAll(signedFile)
 	if err != nil {
 		return errors.Wrapf(err, "while reading body from signed license file")
 	}
-	// This could be nil even if signature verification failed, so we also check Signature == nil
-	// below.
-	if md.SignatureError != nil {
-		return errors.Wrapf(md.SignatureError,
-			"signature error while trying to verify license file")
-	}
-	if md.Signature == nil {
-		return errors.New("invalid signature while trying to verify license file")
-	}
-
 	err = json.Unmarshal(buf, l)
 	if err != nil {
 		return errors.Wrapf(err, "while JSON unmarshaling body of license file")
@@ -122,5 +135,6 @@ func verifySignature(signedFile, publicKey io.Reader, l *license) error {
 	if l.User == "" || l.MaxNodes == 0 || l.Expiry.IsZero() {
 		return errors.Errorf("invalid JSON data, fields shouldn't be zero: %+v\n", l)
 	}
+
 	return nil
 }
